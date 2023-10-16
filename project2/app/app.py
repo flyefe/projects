@@ -57,7 +57,22 @@ def login():
 def logout():
     # Clear the session to log the user out
     session.pop('username', None)
-    return redirect(url_for('home')) 
+    return redirect(url_for('home'))
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+
+        # Perform user registration logic here
+        # Insert the user's information into your MySQL database
+
+        flash('Account created successfully', 'success')
+        return redirect(url_for('login'))  # You can redirect to your login page after successful signup
+
+    return render_template('signup.html')
 
 
 if __name__ == '__main__':
