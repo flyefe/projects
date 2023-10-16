@@ -1,17 +1,32 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-from flask_mysqldb import MySQL
+# from flask_mysqldb import MySQL
+import pymysql
 
 app = Flask (__name__)
-app.secret_key = 'secrete key'
+app.secret_key = '1234'
 
 
 #MYSQL Configuration
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'maestro'
-app.config['MYSQL_DB'] = 'User_sys'
+app.config['MYSQL_DB'] = 'user_sys'
 
-mysql = MySQL(app)
+mysql = pymysql.connect(
+    host=app.config['MYSQL_HOST'],
+    user=app.config['MYSQL_USER'],
+    password=app.config['MYSQL_PASSWORD'],
+    db=app.config['MYSQL_DB']
+)
+
+# mysql = MySQL(app)
+
+@app.route('/check')
+def check_db():
+    if mysql is not None:
+        return "Database is connected!"
+    else:
+        return "Database connection failed."
 
 @app.route('/')
 def home():
@@ -25,8 +40,8 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        cur = mysql.connection.cursor()
-        cur.connect("SELECT username, password FROM user WHERE username = %s,"(username))
+        cur = mysql.cursor()
+        cur.execute("SELECT username, password FROM user WHERE username = %s",(username,))
         user = cur.fetchone()
         cur.close()
 
@@ -37,6 +52,12 @@ def login():
             return render_template('login.html', error= 'invalid username or password')
         
     return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    # Clear the session to log the user out
+    session.pop('username', None)
+    return redirect(url_for('home')) 
 
 
 if __name__ == '__main__':
